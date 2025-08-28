@@ -22,7 +22,7 @@ class ClusterWidget extends StatelessWidget {
     required MapCamera mapCamera,
     required this.cluster,
     required this.builder,
-    required this.onTap,
+    required this.onTap, // On tap has no effect since we disable expansion
     required this.size,
     required this.alignment,
   })  : position = _getClusterPixel(
@@ -45,15 +45,11 @@ class ClusterWidget extends StatelessWidget {
       top: position.dy,
       child: Transform.rotate(
         angle: -mapRotationRad,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: builder(
-            context,
-            cluster.latLng,
-            clusterData.markerCount,
-            clusterData.innerData,
-          ),
+        child: builder(
+          context,
+          cluster.latLng,
+          clusterData.markerCount,
+          clusterData.innerData,
         ),
       ),
     );
