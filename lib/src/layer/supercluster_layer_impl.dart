@@ -201,7 +201,10 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
   void _initializeSupercluster(Future<List<Marker>> markersFuture) {
     if (!mounted) return;
 
-    InheritedSuperclusterScope.of(context, listen: false).setSuperclusterState(
+    final superclusterScope =
+        InheritedSuperclusterScope.maybeOf(context, listen: false);
+    if (superclusterScope == null) return;
+    superclusterScope.setSuperclusterState(
       const SuperclusterStateImpl(
         supercluster: null,
         aggregatedClusterData: null,
@@ -233,7 +236,6 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
               popupSpec.namespace == SuperclusterLayer.popupNamespace,
         );
       });
-
     });
   }
 
@@ -489,8 +491,10 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
         aggregatedClusterData: clusterData,
         supercluster: supercluster,
       );
-      InheritedSuperclusterScope.of(context, listen: false)
-          .setSuperclusterState(superclusterState);
+      final superclusterScope =
+          InheritedSuperclusterScope.maybeOf(context, listen: false);
+      if (superclusterScope == null) return;
+      superclusterScope.setSuperclusterState(superclusterState);
     });
   }
 
