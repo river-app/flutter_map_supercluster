@@ -111,6 +111,8 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
 
     _expandedClusterManager = ExpandedClusterManager(
       onRemoveStart: (expandedClusters) {
+        if (!mounted) return;
+
         // The flutter_map_marker_popup package takes care of hiding popups
         // when zooming out but when an ExpandedCluster removal is triggered by
         // SuperclusterController.collapseSplayedClusters we need to remove the
@@ -122,10 +124,14 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
               .toList(),
         );
       },
-      onRemoved: (expandedClusters) => setState(() {}),
+      onRemoved: (expandedClusters) {
+        if (!mounted) return;
+        setState(() {});
+      },
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _initializeSupercluster(Future.value(widget.initialMarkers));
     });
   }
@@ -159,6 +165,7 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
           'the Supercluster clusters. This can be a slow operation and '
           'should be avoided whenever possible.');
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         _initializeSupercluster(_superclusterCompleter.operation
             .valueOrCancellation()
             .then((supercluster) => supercluster?.getLeaves().toList() ?? []));
@@ -170,6 +177,7 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
           'should be avoided whenever possible.');
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         _initializeSupercluster(_superclusterCompleter.operation
             .valueOrCancellation()
             .then((supercluster) => supercluster?.getLeaves().toList() ?? []));
@@ -186,19 +194,25 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
     widget.popupOptions?.popupController.dispose();
     _movementStreamSubscription?.cancel();
     _controllerSubscription?.cancel();
+    _superclusterCompleter.operation.cancel();
     super.dispose();
   }
 
   void _initializeSupercluster(Future<List<Marker>> markersFuture) {
+    if (!mounted) return;
+
     InheritedSuperclusterScope.of(context, listen: false).setSuperclusterState(
       const SuperclusterStateImpl(
         supercluster: null,
         aggregatedClusterData: null,
       ),
     );
-    markersFuture.catchError((_) => <Marker>[]).then((markers) {
+    markersFuture.catchError((_) => <Marker>[]).then<void>((markers) {
+      if (!mounted) return;
+
       if (_superclusterCompleter.isCompleted ||
           _superclusterCompleter.isCanceled) {
+        if (!mounted) return;
         setState(() {
           _superclusterCompleter = CancelableCompleter();
         });
@@ -211,6 +225,7 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
 
       _superclusterCompleter.complete(newSupercluster);
       _superclusterCompleter.operation.value.then((supercluster) {
+        if (!mounted) return;
         _onMarkersChange();
         _expandedClusterManager.clear();
         widget.popupOptions?.popupController.hidePopupsWhereSpec(
@@ -219,7 +234,6 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
         );
       });
 
-      return newSupercluster;
     });
   }
 
@@ -464,6 +478,7 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
 
   void _onMarkersChange() {
     _superclusterCompleter.operation.value.then((supercluster) {
+      if (!mounted) return;
       final aggregatedClusterData = widget.calculateAggregatedClusterData
           ? supercluster.aggregatedClusterData()
           : null;
@@ -699,6 +714,7 @@ class _SuperclusterLayerImplState extends State<SuperclusterLayerImpl>
         );
     }
 
+    if (!mounted) return;
     setState(() {});
   }
 
